@@ -10,7 +10,6 @@ import java.util.List;
 //import java.util.Set;
 //import java.util.HashSet;
 public class Assignment2 extends JDBCSubmission {
-    private Connection c = null;
 
     public Assignment2() throws ClassNotFoundException {
 
@@ -21,8 +20,8 @@ public class Assignment2 extends JDBCSubmission {
     public boolean connectDB(String url, String username, String password) {
         // Implement this method!
         try {
-            c = DriverManager.getConnection(url, user, password);
-            c.setAutoCommit(false);
+            connection = DriverManager.getConnection(url, user, password);
+            connection.setAutoCommit(false);
             System.out.println("Database opened successfully");
             return true;
         } catch (Exception e) {
@@ -35,9 +34,9 @@ public class Assignment2 extends JDBCSubmission {
     public boolean disconnectDB() {
         // Implement this method!
         try {
-            c.commit();
-            c.close();
-            c = null;
+            connection.commit();
+            connection.close();
+            connection = null;
             return true;
         } catch (Exception e) {
             System.out.println("Database failed to close successfully");
@@ -57,7 +56,7 @@ public class Assignment2 extends JDBCSubmission {
             // Find Country id
             Integer country_id = -1;
             String country_id_query = "SELECT id from country where name=?";
-            prep = c.prepareStatement(country_id_query);
+            prep = connection.prepareStatement(country_id_query);
             prep.setString(1, countryName);
             res = prep.executeQuery();
 
@@ -73,7 +72,7 @@ public class Assignment2 extends JDBCSubmission {
             String inner_join = "FROM cabinet INNER JOIN election ON cabinet.election_id=election.id";
             String query = "SELECT " + select_ids + " " + inner_join
                     + " WHERE country_id=? ORDER BY election.e_date DESC";
-            prep = c.prepareStatement(query);
+            prep = connection.prepareStatement(query);
             prep.setInt(1, country_id);
             res = prep.executeQuery();
 
@@ -107,7 +106,7 @@ public class Assignment2 extends JDBCSubmission {
             // Find Politician Comment and Description
             String comment_and_description = null;
             String politician_query = "SELECT description, comment FROM politician_president WHERE id=?";
-            prep = c.prepareStatement(politician_query);
+            prep = connection.prepareStatement(politician_query);
             prep.setInt(1, politicianName);
             res = prep.executeQuery();
 
@@ -120,7 +119,7 @@ public class Assignment2 extends JDBCSubmission {
 
             String compare_comment_and_description = null;
             String all_politician_query = "SELECT id, description, comment FROM politician_president";
-            prep = c.prepareStatement(all_politician_query);
+            prep = connection.prepareStatement(all_politician_query);
             res = prep.executeQuery();
 
             List<Integer> similarPoliticians = new List<Integer>();
