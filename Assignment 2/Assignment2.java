@@ -22,24 +22,26 @@ public class Assignment2 extends JDBCSubmission {
         // Implement this method!
         try {
             connection = DriverManager.getConnection(url, username, password);
+	    String parlgov = "SET search_path TO parlgov";
+	    connection.prepareStatement(parlgov).execute();
             System.out.println("Database opened successfully");
             return true;
         } catch (Exception e) {
-            System.out.println("Database failed to open successfully");
+            e.printStackTrace();
+	    return false;
         }
-        return false;
+        
     }
 
     @Override
     public boolean disconnectDB() {
         // Implement this method!
         try {
-            connection.commit();
             connection.close();
             connection = null;
             return true;
         } catch (Exception e) {
-            System.out.println("Database failed to close successfully");
+            e.printStackTrace();
         }
         return false;
     }
@@ -50,44 +52,43 @@ public class Assignment2 extends JDBCSubmission {
     // and before the next election of the same type.
     @Override
     public ElectionCabinetResult electionSequence(String countryName) {
-        PreparedStatement prep = null;
-        ResultSet res = null;
         try {
             // Find Country id
             Integer country_id = -1;
             String country_id_query = "SELECT id from country where name=?";
-            prep = connection.prepareStatement(country_id_query);
-            prep.setString(1, countryName);
-            res = prep.executeQuery();
+            PreparedStatement prep1 = connection.prepareStatement(country_id_query);
+            prep1.setString(1, countryName);
+            ResultSet res1 = prep1.executeQuery();
 
-            while (res.next())
-                country_id = res.getInt("id");
-            res.close();
-            prep.close();
+            while (res1.next())
+                country_id = res1.getInt("id");
+            res1.close();
+            prep1.close();
 
             if (country_id < 0)
                 return null;
-
-            String select_ids = "election.id as election_id cabinet.id as cabinet_id";
+	    System.out.println(country_id);
+            String select_ids = "election.id AS election_id, cabinet.id AS cabinet_id";
             String inner_join = "FROM cabinet INNER JOIN election ON cabinet.election_id=election.id";
             String query = "SELECT " + select_ids + " " + inner_join
-                    + " WHERE country_id=? ORDER BY election.e_date DESC";
-            prep = connection.prepareStatement(query);
-            prep.setInt(1, country_id);
-            res = prep.executeQuery();
+                    + " WHERE election.country_id=? ORDER BY election.e_date DESC";
+            PreparedStatement prep2 = connection.prepareStatement(query);
+
+            prep2.setInt(1, country_id);
+            ResultSet res2 = prep2.executeQuery();
 
             List<Integer> elections = new ArrayList<>();
             List<Integer> cabinets = new ArrayList<>();
-            while (res.next()) {
-                elections.add(res.getInt("election_id"));
-                cabinets.add(res.getInt("cabinet_id"));
+            while (res2.next()) {
+                elections.add(res2.getInt("election_id"));
+                cabinets.add(res2.getInt("cabinet_id"));
             }
-            res.close();
-            prep.close();
+            res2.close();
+            prep2.close();
             return new ElectionCabinetResult(elections, cabinets);
 
         } catch (Exception e) {
-            System.out.println("electionSequence failed");
+            e.printStackTrace();
         }
 
         return null;
@@ -100,40 +101,43 @@ public class Assignment2 extends JDBCSubmission {
     @Override
     public List<Integer> findSimilarPoliticians(Integer politicianName, Float threshold) {
         // Implement this method!
-        PreparedStatement prep = null;
-        ResultSet res = null;
         try {
             // Find Politician Comment and Description
             String comment_and_description = null;
             String politician_query = "SELECT description, comment FROM politician_president WHERE id=?";
-            prep = connection.prepareStatement(politician_query);
-            prep.setInt(1, politicianName);
-            res = prep.executeQuery();
-
-            while (res.next())
-                comment_and_description = res.getString("comment") + res.getString("description");
-            res.close();
-            prep.close();
+            PreparedStatement prep1 = connection.prepareStatement(politician_query);
+            prep1.setInt(1, politicianName);
+            ResultSet res1 = prep1.executeQuery();
+            while (res1.next())
+                comment_and_description = res1.getString("comment") + res1.getString("description");
+            res1.close();
+            prep1.close();
+	    
             if (comment_and_description == null)
                 return null;
 
+	    //System.out.println(comment_and_description);
+
             String compare_comment_and_description = null;
             String all_politician_query = "SELECT id, description, comment FROM politician_president";
-            prep = connection.prepareStatement(all_politician_query);
-            res = prep.executeQuery();
+            PreparedStatement prep2 = connection.prepareStatement(all_politician_query);
+            ResultSet res2 = prep2.executeQuery();
 
             List<Integer> similarPoliticians = new ArrayList<Integer>();
-            while (res.next()) {
-                compare_comment_and_description = res.getString("comment") + res.getString("description");
+            while (res2.next()) {
+                compare_comment_and_description = res2.getString("comment") + res2.getString("description");
                 if (similarity(comment_and_description, compare_comment_and_description) > threshold) {
-                    similarPoliticians.add(res.getInt("id"));
+		    int pid = res2.getInt("id");
+		    if (politicianName != pid)
+                        similarPoliticians.add(pid);
                 }
             }
-            res.close();
-            prep.close();
+            res2.close();
+            prep2.close();
+	    //System.out.println(compare_comment_and_description);
             return similarPoliticians;
         } catch (Exception e) {
-            System.out.println("electionSequence failed");
+            e.printStackTrace();
         }
         return null;
     }
@@ -143,16 +147,18 @@ public class Assignment2 extends JDBCSubmission {
         try {
             Assignment2 test = new Assignment2();
             System.out.println("instantiation completed");
-            if (test.connectDB("localhost:5432", "csc343h-wonchanw", "")) {
+            if (!test.connectDB("jdbc:postgresql://localhost:5432/csc343h-wonchanw", "wonchanw", "")) {
                 System.out.println("connection failed");
+		return;
             }
             // Test election sequence
             System.out.println("Test 1:");
             ElectionCabinetResult eResult = test.electionSequence("Canada");
-            for (int i = 0; i < eResult.elections.size(); ++i) {
-                System.out.println("Election: " + eResult.elections.get(i) + " Cabinet: " + eResult.cabinets.get(i));
-            }
-
+	    if (eResult != null) {
+		    for (int i = 0; i < eResult.elections.size(); ++i) {
+		        System.out.println("Election: " + eResult.elections.get(i) + " Cabinet: " + eResult.cabinets.get(i));
+		    }
+	    }
             // Test findSimilarPoliticians
             System.out.println("Test 2:");
             List<Integer> politicians = test.findSimilarPoliticians(9, (float) 0.0);
