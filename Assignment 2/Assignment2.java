@@ -22,7 +22,6 @@ public class Assignment2 extends JDBCSubmission {
         // Implement this method!
         try {
             connection = DriverManager.getConnection(url, username, password);
-            connection.setAutoCommit(false);
             System.out.println("Database opened successfully");
             return true;
         } catch (Exception e) {
@@ -141,16 +140,30 @@ public class Assignment2 extends JDBCSubmission {
 
     public static void main(String[] args) {
         // You can put testing code in here. It will not affect our autotester.
-	try {
-	    Assignment2 test = new Assignment2();
-	    System.out.println("instantiation completed");
-	    if (test.connectDB("localhost:5432", "csc343h-wonchanw", "")) {
-	        System.out.println("connection failed");	
-	    }
-	    test.disconnectDB();
-	} catch (ClassNotFoundException e) {
-	    System.out.println("Instantiation Failed.");	
-	}
+        try {
+            Assignment2 test = new Assignment2();
+            System.out.println("instantiation completed");
+            if (test.connectDB("localhost:5432", "csc343h-wonchanw", "")) {
+                System.out.println("connection failed");
+            }
+            // Test election sequence
+            System.out.println("Test 1:");
+            ElectionCabinetResult eResult = test.electionSequence("Canada");
+            for (int i = 0; i < eResult.elections.size(); ++i) {
+                System.out.println("Election: " + eResult.elections.get(i) + " Cabinet: " + eResult.cabinets.get(i));
+            }
+
+            // Test findSimilarPoliticians
+            System.out.println("Test 2:");
+            List<Integer> politicians = test.findSimilarPoliticians(9, (float) 0.0);
+            for (int i : politicians) {
+                System.out.println(i);
+            }
+
+            test.disconnectDB();
+        } catch (ClassNotFoundException e) {
+            System.out.println("Instantiation Failed.");
+        }
     }
 
 }
