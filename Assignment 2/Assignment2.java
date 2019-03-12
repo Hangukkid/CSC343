@@ -5,6 +5,7 @@ import java.util.List;
 // Remember that an important part of your mark is for doing as much in SQL (not Java) as you can.
 // Solutions that use only or mostly Java will not receive a high mark.
 import java.util.ArrayList;
+
 //import java.util.Map;
 //import java.util.HashMap;
 //import java.util.Set;
@@ -50,7 +51,7 @@ public class Assignment2 extends JDBCSubmission {
     // and before the next election of the same type.
     @Override
     public ElectionCabinetResult electionSequence(String countryName) {
-        PreparedStatment prep = null;
+        PreparedStatement prep = null;
         ResultSet res = null;
         try {
             // Find Country id
@@ -100,7 +101,7 @@ public class Assignment2 extends JDBCSubmission {
     @Override
     public List<Integer> findSimilarPoliticians(Integer politicianName, Float threshold) {
         // Implement this method!
-        PreparedStatment prep = null;
+        PreparedStatement prep = null;
         ResultSet res = null;
         try {
             // Find Politician Comment and Description
