@@ -20,7 +20,7 @@ public class Assignment2 extends JDBCSubmission {
     public boolean connectDB(String url, String username, String password) {
         // Implement this method!
         try {
-            connection = DriverManager.getConnection(url, user, password);
+            connection = DriverManager.getConnection(url, username, password);
             connection.setAutoCommit(false);
             System.out.println("Database opened successfully");
             return true;
@@ -76,8 +76,8 @@ public class Assignment2 extends JDBCSubmission {
             prep.setInt(1, country_id);
             res = prep.executeQuery();
 
-            List<Integer> elections = new List<Integer>();
-            List<Integer> cabinets = new List<Integer>();
+            List<Integer> elections = new ArrayList<>();
+            List<Integer> cabinets = new ArrayList<>();
             while (res.next()) {
                 elections.add(res.getInt("election_id"));
                 cabinets.add(res.getInt("cabinet_id"));
@@ -122,7 +122,7 @@ public class Assignment2 extends JDBCSubmission {
             prep = connection.prepareStatement(all_politician_query);
             res = prep.executeQuery();
 
-            List<Integer> similarPoliticians = new List<Integer>();
+            List<Integer> similarPoliticians = new ArrayList<Integer>();
             while (res.next()) {
                 compare_comment_and_description = res.getString("comment") + res.getString("description");
                 if (similarity(comment_and_description, compare_comment_and_description) > threshold) {
