@@ -141,7 +141,16 @@ public class Assignment2 extends JDBCSubmission {
 
     public static void main(String[] args) {
         // You can put testing code in here. It will not affect our autotester.
-        System.out.println("Hello");
+	try {
+	    Assignment2 test = new Assignment2();
+	    System.out.println("instantiation completed");
+	    if (test.connectDB("localhost:5432", "csc343h-wonchanw", "")) {
+	        System.out.println("connection failed");	
+	    }
+	    test.disconnectDB();
+	} catch (ClassNotFoundException e) {
+	    System.out.println("Instantiation Failed.");	
+	}
     }
 
 }
